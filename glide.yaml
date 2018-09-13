@@ -1,0 +1,6 @@
+package: github.com/asdfsx/k8s-example-controller
+import:
+- package: github.com/sirupsen/logrus
+  version: 1.0.5
+- package: k8s.io/client-go
+  version: v8.0.0
