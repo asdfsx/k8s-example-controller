@@ -10,11 +10,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/workqueue"
 
 	"github.com/asdfsx/k8s-example-controller/pkg/signals"
+	"github.com/asdfsx/k8s-example-controller/pkg/api/types/v1"
+	clientV1 "github.com/asdfsx/k8s-example-controller/pkg/clientset/v1"
 )
 
 var (
@@ -121,6 +124,19 @@ func main() {
 
 	// run the controller loop to process items
 	go controller.Run(stopCh)
+
+	// try to use informer not sharedindexinformer
+	v1.AddToScheme(scheme.Scheme)
+	clientSet, err := clientV1.NewForConfig(cfg)
+	if err != nil {
+		log.Fatalf("Error building kubernetes clientset: %s", err.Error())
+	}
+
+	kubeconfigs, err := clientSet.Kubeconfigs(meta_v1.NamespaceAll).List(meta_v1.ListOptions{})
+	if err != nil {
+		log.Fatalf("Error Listing kubeconfigs : %s", err.Error())
+	}
+	fmt.Printf("projects found: %+v\n", kubeconfigs)
 
 	log.Info("Started workers")
 	<-stopCh
